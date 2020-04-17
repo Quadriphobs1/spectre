@@ -1,0 +1,67 @@
+version: "3.7"
+services:
+  postgres:
+    image: postgres
+    container_name: "spectre-postgres"
+    networks:
+      - databases
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_PASSWORD: spectre
+      POSTGRES_USER: spectre
+      POSTGRES_DB: spectre
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+
+  mysql:
+    image: mysql
+    container_name: "spectre-mysql"
+    environment:
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: spectre
+      MYSQL_DATABASE: spectre
+      MYSQL_PASSWORD: spectre
+    ports:
+      - "3306:3306"
+    networks:
+      - databases
+    volumes:
+      - ./data/mysql:/var/lib/mysql/data
+
+  mariadb:
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_USER: root
+      MYSQL_ROOT_PASSWORD: spectre
+      MYSQL_DATABASE: spectre
+    ports:
+      - "3307:3306"
+    networks:
+      - databases
+    tmpfs: /var/lib/mariadb
+    volumes:
+      - ./data/mariadb:/var/lib/mariadb/data
+
+  cockroachdb:
+    image: "cockroachdb"
+    container_name: "spectre-cockroachdb"
+    command: start --insecure
+    ports:
+      - "26257:26257"
+    networks:
+      - databases
+    volumes:
+      - ./data/cockroachdb:/var/lib/cockroachdb/data
+
+  mongodb:
+    image: "mongo"
+    container_name: "spectre-mongodb"
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data/mongo:/var/lib/mongo/data
+
+networks:
+  databases:

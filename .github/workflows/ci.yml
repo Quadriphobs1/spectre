@@ -1,0 +1,51 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.kind }} ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+
+      - name: Clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --release -- -D clippy::all
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-targets --verbose
+
+      - name: Test release
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --all-features --no-fail-fast --verbose
+        env:
+          CARGO_INCREMENTAL: "0"
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads"
+
+      - id: coverage
+        uses: actions-rs/grcov@v0.1
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ${{ steps.coverage.outputs.report }}
