@@ -17,8 +17,8 @@ pub fn init_command(matches: &ArgMatches) {
   let database = value_t!(matches, "database", DatabaseOption).unwrap_or(DatabaseOption::Postgres);
 
   let migrations_dir =
-    value_t!(matches, "migrations", String).unwrap_or(String::from("src/migrations"));
-  let seeds_dir = value_t!(matches, "seeds", String).unwrap_or(String::from("src/seeds"));
+    value_t!(matches, "migrations", String).unwrap_or_else(|_| String::from("src/migrations"));
+  let seeds_dir = value_t!(matches, "seeds", String).unwrap_or_else(|_| String::from("src/seeds"));
   // Create the seeds and migrations directory if it doesn't yet exist
   verify_or_create_directory(&base_path, migrations_dir.clone()).unwrap_or_else(handle_error);
   verify_or_create_directory(&base_path, seeds_dir.clone()).unwrap_or_else(handle_error);
@@ -26,7 +26,7 @@ pub fn init_command(matches: &ArgMatches) {
   let docker = value_t!(matches, "docker", bool).unwrap_or(false);
 
   if docker {
-    create_docker_compose_file(&base_path, &database).unwrap_or_else(handle_error);
+    create_docker_compose_file(&base_path, database).unwrap_or_else(handle_error);
   }
 
   // Log output for user on the status of the operation

@@ -28,7 +28,7 @@ pub fn create_config_file(
 
 pub fn create_docker_compose_file(
   base: &PathBuf,
-  database: &DatabaseOption,
+  database: DatabaseOption,
 ) -> Result<(), Box<dyn Error>> {
   use std::io::Write;
 
@@ -94,7 +94,7 @@ mod tests {
     let temp_path = dir.path().canonicalize().unwrap();
     env::set_current_dir(&temp_path).unwrap();
     let db = DatabaseOption::Postgres;
-    assert!(create_docker_compose_file(&temp_path, &db).is_ok());
+    assert!(create_docker_compose_file(&temp_path, db).is_ok());
     assert!(temp_path.join("docker-compose.yml").exists());
   }
 

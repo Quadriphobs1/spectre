@@ -132,7 +132,7 @@ mod tests {
 
     fs::File::create(&toml_path).unwrap();
     env::set_current_dir(&temp_path).unwrap();
-    assert_eq!(Ok(temp_path.clone()), find_project_root());
+    assert_eq!(Ok(temp_path), find_project_root());
     dir.close().unwrap();
   }
 }

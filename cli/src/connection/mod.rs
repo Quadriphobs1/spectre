@@ -3,20 +3,20 @@ use crate::driver::{Driver, DriverFactory};
 use crate::result::ConnectionResult;
 
 pub struct Connection<T: Driver> {
-  name: String,
-  driver: T,
+  _name: String,
+  _driver: T,
   // logger
-  is_connected: bool,
+  _is_connected: bool,
 }
 
 impl<T: Driver> Connection<T> {
   pub fn establish(config: &Config, database_url: &str) -> Self {
-    let driver: T = DriverFactory::create(&config.database.provider, database_url);
+    let _driver: T = DriverFactory::create(config.database.provider, database_url);
     unimplemented!()
   }
 
-  pub fn close(&self) -> ConnectionResult<()> {
-    self.driver.disconnect()?;
+  pub fn _close(&self) -> ConnectionResult<()> {
+    // self.driver.disconnect()?;
     Ok(())
   }
 }

@@ -6,7 +6,6 @@ use std::error::Error;
 use std::fs;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use toml;
 
 #[derive(Deserialize, Default, Serialize, Debug)]
 #[serde(deny_unknown_fields)]
@@ -70,10 +69,10 @@ impl MigrationsDirectory {
   }
 
   fn verify_relative_path_exist(&self) -> CliResult<()> {
-    match self.dir.is_dir() {
-      true => Ok(()),
-      false => handle_error(CliError::MigrationsDirectoryNotFound(self.dir.clone())),
+    if !self.dir.is_dir() {
+      handle_error(CliError::MigrationsDirectoryNotFound(self.dir.clone()))
     }
+    Ok(())
   }
 }
 
@@ -91,9 +90,9 @@ impl SeedsDirectory {
   }
 
   fn verify_relative_path_exist(&self) -> CliResult<()> {
-    match self.dir.is_dir() {
-      true => Ok(()),
-      false => handle_error(CliError::SeedsDirectoryNotFound(self.dir.clone())),
+    if !self.dir.is_dir() {
+      handle_error(CliError::SeedsDirectoryNotFound(self.dir.clone()))
     }
+    Ok(())
   }
 }

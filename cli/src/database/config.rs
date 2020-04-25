@@ -50,7 +50,7 @@ impl DatabaseOption {
     DatabaseOption::Postgres
   }
 
-  pub fn verify_url(&self, db_url: &str) -> CliResult<()> {
+  pub fn verify_url(self, db_url: &str) -> CliResult<()> {
     match self {
       #[cfg(feature = "postgres")]
       DatabaseOption::Postgres => {

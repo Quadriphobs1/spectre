@@ -10,7 +10,7 @@ pub trait Driver: Sized + Send {
 pub struct DriverFactory;
 
 impl DriverFactory {
-  pub fn create<T: Driver>(database: &DatabaseOption, database_url: &str) -> T {
+  pub fn create<T: Driver>(database: DatabaseOption, _database_url: &str) -> T {
     match database {
       #[cfg(feature = "postgres")]
       DatabaseOption::Postgres => unimplemented!(),
