@@ -1,19 +1,9 @@
 [package]
-name = "spectre"
+name = "config"
 version = "0.1.0"
 authors = ["Quadriphobs1 <abiodunquadriadekunle@gmail.com>"]
 edition = "2018"
-license = "MIT OR Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = "1.0.106"
-serde_derive = "1.0.106"
-dotenv = "0.15.0"
-
-
-[features]
-default = ["postgres"]
-postgres = []
-mysql = []

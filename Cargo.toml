@@ -1,2 +1,2 @@
 [workspace]
-members = ["spectre", "cli"]
+members = ["spectre", "cli", "config", "connection"]
