@@ -12,6 +12,9 @@ serde = "1.0.106"
 serde_derive = "1.0.106"
 dotenv = "0.15.0"
 
+[dependencies.spectre_connection]
+path = "../connection"
+
 
 [features]
 default = ["postgres"]

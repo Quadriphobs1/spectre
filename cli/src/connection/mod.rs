@@ -1,6 +1,5 @@
 use crate::config::Config;
 use crate::driver::{Driver, DriverFactory};
-use crate::result::ConnectionResult;
 
 pub struct Connection<T: Driver> {
   _name: String,
@@ -15,7 +14,7 @@ impl<T: Driver> Connection<T> {
     unimplemented!()
   }
 
-  pub fn _close(&self) -> ConnectionResult<()> {
+  pub fn _close(&self) -> Result<(), Box<dyn std::error::Error>> {
     // self.driver.disconnect()?;
     Ok(())
   }
