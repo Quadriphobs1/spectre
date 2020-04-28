@@ -11,10 +11,12 @@ pub struct ConfigOption {
 
 impl Default for ConfigOption {
   fn default() -> Self {
+    let mut connections = Vec::new();
+    connections.push(ConnectionOption::new());
     ConfigOption {
       // TODO: This should not be hardcoded
       version: String::from("1.0"),
-      connections: Vec::new(),
+      connections,
     }
   }
 }

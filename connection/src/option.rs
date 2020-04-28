@@ -4,22 +4,21 @@ use crate::Datasource;
 #[serde(deny_unknown_fields)]
 pub struct ConnectionOption {
   #[serde(default)]
-  pub name: String,
+  pub name: Option<String>,
   #[serde(default)]
-  pub logging: bool, // TODO: Should support different logging options such as all, query, error, schema, warn, info, log and accept a custom logger
-  #[serde(default = "Datasource::default")]
   pub datasource: Datasource,
+  pub auto_migrate: Option<bool>,
   #[serde(default)]
-  pub auto_migrate: bool,
-  // entities/models, migrations, subscribers
+  pub logging: Option<bool>, // TODO: Should support different logging options such as all, query, error, schema, warn, info, log and accept a custom logger
+                             // // entities/models, migrations, subscribers
 }
 
 impl Default for ConnectionOption {
   fn default() -> Self {
     ConnectionOption {
-      name: String::from("default"),
-      logging: false,
-      auto_migrate: false,
+      name: Some(String::from("default")),
+      logging: Some(false),
+      auto_migrate: Some(false),
       datasource: Datasource::default(),
     }
   }

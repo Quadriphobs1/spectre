@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate serde_derive;
 extern crate spectre_connection;
-extern crate toml;
 
 mod config;
 mod directory;

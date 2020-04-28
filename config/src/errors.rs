@@ -10,6 +10,7 @@ pub enum Error {
   ProjectRootNotFound(PathBuf),
   FileNotFound(PathBuf),
   IoError(io::Error),
+  ConfigFileError(serde_yaml::Error),
   #[doc(hidden)]
   __Nonexhaustive,
 }
@@ -29,10 +30,17 @@ impl From<io::Error> for Error {
   }
 }
 
+impl From<serde_yaml::Error> for Error {
+  fn from(e: serde_yaml::Error) -> Self {
+    ConfigFileError(e)
+  }
+}
+
 impl StdError for Error {
   fn source(&self) -> Option<&(dyn StdError + 'static)> {
     match self {
       IoError(err) => Some(err),
+      ConfigFileError(err) => Some(err),
       _ => None,
     }
   }
@@ -52,6 +60,12 @@ impl fmt::Display for Error {
         p
       ),
       IoError(ref error) => f.write_str(
+        &error
+          .source()
+          .map(ToString::to_string)
+          .unwrap_or_else(|| error.to_string()),
+      ),
+      ConfigFileError(ref error) => f.write_str(
         &error
           .source()
           .map(ToString::to_string)
@@ -77,6 +91,7 @@ mod test {
   use super::*;
   use std::error::Error as StdError;
   use std::path::PathBuf;
+  use unindent::unindent;
 
   #[test]
   fn test_io_error_source() {
@@ -162,5 +177,24 @@ mod test {
       err,
       Error::IoError(std::io::ErrorKind::PermissionDenied.into())
     );
+  }
+
+  #[test]
+  fn test_config_file_error() {
+    #[derive(Deserialize, Debug)]
+    struct Basic {
+      v: bool,
+      w: bool,
+    }
+    let yaml = unindent(
+      "
+        ---
+        v: true",
+    );
+
+    let err = Error::ConfigFileError(serde_yaml::from_str::<Basic>(&yaml).unwrap_err());
+    let expected_desc = "missing field `w` at line 2 column 2".to_string();
+    let err_desc = format!("{}", err);
+    assert_eq!(expected_desc, err_desc);
   }
 }
