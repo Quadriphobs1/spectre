@@ -1,28 +1,29 @@
 #[macro_use]
 extern crate clap;
+extern crate config;
 extern crate dotenv;
-#[macro_use]
-extern crate serde_derive;
 extern crate toml;
 
 mod cli;
-mod config;
 mod connection;
 mod database;
 mod directory;
 mod driver;
+mod errors;
 mod init;
 mod migrate;
-mod result;
 mod seed;
 mod util;
 
 use self::database::database_command;
+use self::errors::Error;
 use self::init::init_command;
 use self::migrate::migrate_command;
 use self::seed::seed_command;
 use clap::{crate_name, ArgMatches, Shell};
 use std::io::stdout;
+
+type Result<T> = std::result::Result<T, Error>;
 
 pub fn main() {
   use self::dotenv::dotenv;

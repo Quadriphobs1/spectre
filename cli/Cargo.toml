@@ -6,7 +6,11 @@ edition = "2018"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 description = "Spectre CLI"
-autotests = false
+default-run = "spectre"
+
+[lib]
+name = "cli"
+path = "src/lib.rs"
 
 [[test]]
 name = "tests"
@@ -15,14 +19,13 @@ name = "tests"
 name = "spectre"
 path = "src/main.rs"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 clap = "2.33.0"
 serde = "1.0.106"
 serde_derive = "1.0.106"
 dotenv = "0.15.0"
 toml = "0.5.6"
+config = { path = "../config", version = "0.1.0" }
 
 [dev-dependencies]
 tempfile = "3.1.0"

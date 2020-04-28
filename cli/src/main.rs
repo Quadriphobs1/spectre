@@ -1,5 +1,5 @@
-extern crate spectre_cli;
+extern crate cli;
 
 fn main() {
-  spectre_cli::main();
+  cli::main();
 }

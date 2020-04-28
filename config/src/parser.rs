@@ -12,7 +12,6 @@ impl Parser {
 
   pub fn from(option: &ConfigOption) -> Result<Vec<u8>> {
     let config = serde_yaml::to_string(&option)?;
-    println!("{:?}", config);
     Ok(config.into_bytes())
   }
 }

@@ -1,5 +1,5 @@
-use crate::config::Config;
-use crate::driver::{Driver, DriverFactory};
+use crate::driver::Driver;
+use config::Config;
 
 pub struct Connection<T: Driver> {
   _name: String,
@@ -10,7 +10,7 @@ pub struct Connection<T: Driver> {
 
 impl<T: Driver> Connection<T> {
   pub fn establish(config: &Config, database_url: &str) -> Self {
-    let _driver: T = DriverFactory::create(config.database.provider, database_url);
+    // let _driver: T = DriverFactory::create(config.database.provider, database_url);
     unimplemented!()
   }
 

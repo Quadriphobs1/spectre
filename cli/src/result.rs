@@ -11,10 +11,7 @@ pub type CliResult<T> = Result<T, CliError>;
 #[derive(Debug)]
 pub enum CliError {
   ProjectRootNotFound(PathBuf),
-  ConfigLoadError,
   IoError(io::Error),
-  MigrationsDirectoryNotFound(PathBuf),
-  SeedsDirectoryNotFound(PathBuf),
   DatabaseUrlMissing,
 }
 
@@ -34,12 +31,7 @@ impl fmt::Display for CliError {
         "Unable to find Cargo.toml in {:?} or any parent directories.",
         p
       ),
-      MigrationsDirectoryNotFound(ref p) => {
-        write!(f, "Unable to find migrations directory in {:?}.", p)
-      }
-      SeedsDirectoryNotFound(ref p) => write!(f, "Unable to find seeds directory in {:?}.", p),
       DatabaseUrlMissing => f.write_str("The the DATABASE_URL environment variable must be set."),
-      ConfigLoadError => f.write_str("Unable to find the configuration file, run `spectre init` to setup the configuration file."),
       IoError(ref error) => f.write_str(
         &error
           .source()
@@ -54,8 +46,6 @@ impl PartialEq for CliError {
   fn eq(&self, other: &Self) -> bool {
     match (self, other) {
       (&ProjectRootNotFound(_), &ProjectRootNotFound(_)) => true,
-      (&MigrationsDirectoryNotFound(_), &MigrationsDirectoryNotFound(_)) => true,
-      (&SeedsDirectoryNotFound(_), &SeedsDirectoryNotFound(_)) => true,
       _ => false,
     }
   }

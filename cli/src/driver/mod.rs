@@ -1,5 +1,3 @@
-use crate::database::DatabaseOption;
-
 pub trait Driver: Sized + Send {
   fn establish(database_url: &str) -> Result<Self, Box<dyn std::error::Error>>;
   fn connect(&self) -> Result<(), Box<dyn std::error::Error>>;
@@ -9,13 +7,8 @@ pub trait Driver: Sized + Send {
 pub struct DriverFactory;
 
 impl DriverFactory {
-  pub fn create<T: Driver>(database: DatabaseOption, _database_url: &str) -> T {
-    match database {
-      #[cfg(feature = "postgres")]
-      DatabaseOption::Postgres => unimplemented!(),
-      #[cfg(feature = "mysql")]
-      DatabaseOption::MySQL => unimplemented!(),
-    }
+  pub fn create<T: Driver>(_database_url: &str) -> T {
+    unimplemented!()
   }
 }
 

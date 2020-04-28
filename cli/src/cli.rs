@@ -1,4 +1,3 @@
-use crate::database::DatabaseOption;
 use clap::{
   crate_authors, crate_description, crate_name, crate_version, App, AppSettings, Arg, Shell,
   SubCommand,
@@ -57,34 +56,19 @@ fn init_subcommand<'a, 'b>() -> App<'a, 'b> {
     )
     .setting(AppSettings::VersionlessSubcommands)
     .args(&[
-      Arg::with_name("database")
-        .short("d")
-        .alias("database")
-        .long("database")
-        .required(false)
-        .help("Database type you'll use in your project. `postgres` by default")
-        .possible_values(&DatabaseOption::variants())
-        .takes_value(true),
       Arg::with_name("docker")
         .alias("docker")
         .long("docker")
         .help("Set to true if docker-compose must be generated as well. `false` by default.")
         .required(false)
         .takes_value(true),
-      Arg::with_name("migrations")
-        .short("m")
-        .alias("migrations")
-        .long("migrations")
-        .help("Set migrations folder directory. `migrations` by default.")
+      Arg::with_name("name")
+        .alias("name")
+        .long("name")
+        .short("n")
         .required(false)
-        .takes_value(true),
-      Arg::with_name("seeds")
-        .short("s")
-        .alias("seeds")
-        .long("seeds")
-        .help("Set seeds folder directory. `seeds` by default")
-        .required(false)
-        .takes_value(true),
+        .takes_value(true)
+        .help("Set the file name to use for the config"),
     ])
 }
 

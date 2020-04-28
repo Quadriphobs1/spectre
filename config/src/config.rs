@@ -1,4 +1,3 @@
-use crate::directory::find_project_root;
 use crate::ConfigOption;
 use crate::Error;
 use crate::Parser;
@@ -9,7 +8,6 @@ use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub struct Config {
-  root: PathBuf,
   config_name: String,
   config_bytes: Vec<u8>,
   extensions: Vec<String>,
@@ -19,7 +17,6 @@ pub struct Config {
 impl Default for Config {
   fn default() -> Self {
     Config {
-      root: PathBuf::new(),
       config_name: String::from("spectre"),
       extensions: vec![String::from("yaml"), String::from("yml")],
       config_bytes: Vec::new(),
@@ -39,17 +36,9 @@ impl Config {
     self.config_name = String::from(name);
   }
 
-  // Set the root folder dir
-  pub fn root(&mut self, path: PathBuf) {
-    self.root = path;
-  }
-
   /// Load the config file
-  pub fn load(&mut self) -> Result<()> {
-    let root = find_project_root()?;
-    self.root(root);
-
-    let path_base = Path::new(&self.root).join(&self.config_name);
+  pub fn load(&mut self, root: &PathBuf) -> Result<()> {
+    let path_base = Path::new(&root).join(&self.config_name);
     let path = self
       .extensions
       .iter()
@@ -64,8 +53,28 @@ impl Config {
       self.option = option;
       Ok(())
     } else {
-      Err(Error::FileNotFound(self.root.clone()))
+      Err(Error::FileNotFound(root.to_path_buf()))
     }
+  }
+
+  pub fn create(&mut self, root: &PathBuf) -> Result<()> {
+    use std::io::Write;
+
+    let config = ConfigOption::default();
+    let parsed_config = Parser::from(&config)?;
+    // TODO: Should change the database url to use env syntax
+    let path = root
+      .join(&self.config_name)
+      .with_extension(&self.extensions[0]);
+
+    if path.exists() {
+      return Err(Error::ConfigFileExist(self.config_name.to_string()));
+    }
+
+    let mut file = fs::File::create(path)?;
+    file.write_all(&parsed_config)?;
+
+    Ok(())
   }
 }
 
@@ -85,7 +94,6 @@ mod tests {
   use super::{is_in_path, Config};
   use crate::Error;
   use indoc::indoc;
-  use std::path::{Path, PathBuf};
   use std::{env, fs};
 
   #[test]
@@ -97,31 +105,6 @@ mod tests {
   }
 
   #[test]
-  fn test_root() {
-    let mut config = Config::new();
-    assert_eq!(config.root.to_str(), Some(""));
-    config.root(PathBuf::from("file-path"));
-    assert_eq!(config.root.as_path(), Path::new("file-path"));
-  }
-
-  #[test]
-  fn test_load_no_root_error() {
-    let dir = Builder::new().prefix("test-folder").tempdir().unwrap();
-    let temp_path = dir.path().canonicalize().unwrap();
-    env::set_current_dir(&temp_path).unwrap();
-    let mut config = Config::new();
-    let err = config.load();
-
-    assert!(err.is_err());
-
-    assert_eq!(
-      err.unwrap_err(),
-      Error::ProjectRootNotFound(PathBuf::from("test-folder"))
-    );
-    dir.close().unwrap();
-  }
-
-  #[test]
   fn test_file_not_exist() {
     let dir = Builder::new().prefix("test-file").tempdir().unwrap();
     let temp_path = dir.path().canonicalize().unwrap();
@@ -130,7 +113,7 @@ mod tests {
     fs::File::create(&cargo_path).unwrap();
     env::set_current_dir(&temp_path).unwrap();
     let mut config = Config::new();
-    let err = config.load();
+    let err = config.load(&temp_path);
 
     assert!(err.is_err());
 
@@ -175,7 +158,6 @@ mod tests {
 
     let dir = Builder::new().prefix("test-file").tempdir().unwrap();
     let temp_path = dir.path().canonicalize().unwrap();
-    let cargo_path = temp_path.join("Cargo.toml");
     let option = indoc!(
       r#"
         version: "1.0"
@@ -189,12 +171,11 @@ mod tests {
       "#
     );
 
-    fs::File::create(&cargo_path).unwrap();
     let mut config_file = fs::File::create(temp_path.join("spectre.yaml")).unwrap();
     config_file.write_all(option.as_bytes()).unwrap();
     env::set_current_dir(&temp_path).unwrap();
     let mut config = Config::new();
-    let result = config.load();
+    let result = config.load(&temp_path);
 
     assert!(result.is_ok());
     dir.close().unwrap();
@@ -206,7 +187,6 @@ mod tests {
 
     let dir = Builder::new().prefix("test-file").tempdir().unwrap();
     let temp_path = dir.path().canonicalize().unwrap();
-    let cargo_path = temp_path.join("Cargo.toml");
     let option = indoc!(
       r#"
         version: "1.0"
@@ -219,15 +199,53 @@ mod tests {
             logging: false
       "#
     );
-
-    fs::File::create(&cargo_path).unwrap();
     let mut config_file = fs::File::create(temp_path.join("spectre.yml")).unwrap();
     config_file.write_all(option.as_bytes()).unwrap();
     env::set_current_dir(&temp_path).unwrap();
     let mut config = Config::new();
-    let result = config.load();
+    let result = config.load(&temp_path);
 
     assert!(result.is_ok());
+    dir.close().unwrap();
+  }
+
+  #[test]
+  fn test_create() {
+    let dir = Builder::new().prefix("test-file").tempdir().unwrap();
+    let temp_path = dir.path().canonicalize().unwrap();
+    env::set_current_dir(&temp_path).unwrap();
+    let mut config = Config::new();
+    let result = config.create(&temp_path);
+
+    assert!(result.is_ok());
+    assert!(temp_path.join("spectre.yaml").exists());
+    dir.close().unwrap();
+  }
+
+  #[test]
+  fn test_create_with_name() {
+    let dir = Builder::new().prefix("test-file").tempdir().unwrap();
+    let temp_path = dir.path().canonicalize().unwrap();
+    env::set_current_dir(&temp_path).unwrap();
+    let mut config = Config::new();
+    config.config_name("example");
+    let result = config.create(&temp_path);
+
+    assert!(result.is_ok());
+    assert!(temp_path.join("example.yaml").exists());
+    dir.close().unwrap();
+  }
+
+  #[test]
+  fn test_create_error() {
+    let dir = Builder::new().prefix("test-file").tempdir().unwrap();
+    let temp_path = dir.path().canonicalize().unwrap();
+    fs::File::create(temp_path.join("spectre.yaml")).unwrap();
+    env::set_current_dir(&temp_path).unwrap();
+    let mut config = Config::new();
+    let result = config.create(&temp_path);
+
+    assert!(result.is_err());
     dir.close().unwrap();
   }
 }

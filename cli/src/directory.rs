@@ -1,15 +1,13 @@
-use crate::result::{CliError, CliResult};
+use crate::{Error, Result};
 use std::env;
-use std::error::Error;
-use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn find_project_root() -> CliResult<PathBuf> {
+pub fn find_project_root() -> Result<PathBuf> {
   let cur_dir = env::current_dir()?;
   search_for_directory_containing_file(&cur_dir, "Cargo.toml")
 }
 
-pub fn search_for_directory_containing_file(path: &Path, file: &str) -> CliResult<PathBuf> {
+pub fn search_for_directory_containing_file(path: &Path, file: &str) -> Result<PathBuf> {
   let toml_path = path.join(file);
   if toml_path.is_file() {
     Ok(path.to_owned())
@@ -17,29 +15,18 @@ pub fn search_for_directory_containing_file(path: &Path, file: &str) -> CliResul
     path
       .parent()
       .map(|p| search_for_directory_containing_file(p, file))
-      .unwrap_or_else(|| Err(CliError::ProjectRootNotFound(path.into())))
-      .map_err(|_| CliError::ProjectRootNotFound(path.into()))
+      .unwrap_or_else(|| Err(Error::ProjectRootNotFound(path.into())))
+      .map_err(|_| Error::ProjectRootNotFound(path.into()))
   }
-}
-
-pub fn verify_or_create_directory(base: &PathBuf, dir: String) -> Result<(), Box<dyn Error>> {
-  let dir_path = Path::new(&base).join(dir);
-  if !dir_path.is_dir() {
-    fs::create_dir_all(dir_path)?;
-  }
-
-  Ok(())
 }
 
 #[cfg(test)]
 mod tests {
   extern crate tempfile;
   use self::tempfile::Builder;
-  use crate::result::CliError;
+  use crate::Error;
 
-  use super::{
-    find_project_root, search_for_directory_containing_file, verify_or_create_directory,
-  };
+  use super::{find_project_root, search_for_directory_containing_file};
   use std::env;
   use std::fs;
 
@@ -83,44 +70,9 @@ mod tests {
     let temp_path = dir.path().canonicalize().unwrap();
 
     assert_eq!(
-      Err(CliError::ProjectRootNotFound(temp_path.clone())),
+      Err(Error::ProjectRootNotFound(temp_path.clone())),
       search_for_directory_containing_file(&temp_path, "Cargo.toml")
     );
-    dir.close().unwrap();
-  }
-
-  #[test]
-  fn should_create_dir() {
-    let dir = Builder::new().prefix("test4").tempdir().unwrap();
-    let temp_path = dir.path().canonicalize().unwrap();
-
-    assert!(verify_or_create_directory(&temp_path, String::from("sample")).is_ok());
-
-    assert!(temp_path.join("sample").is_dir());
-    dir.close().unwrap();
-  }
-
-  #[test]
-  fn should_create_nested_dir() {
-    let dir = Builder::new().prefix("test7").tempdir().unwrap();
-    let temp_path = dir.path().canonicalize().unwrap();
-
-    assert!(verify_or_create_directory(&temp_path, String::from("sample/nested")).is_ok());
-
-    assert!(temp_path.join("sample").is_dir());
-    assert!(temp_path.join("sample/nested").is_dir());
-    dir.close().unwrap();
-  }
-
-  #[test]
-  fn should_not_create_dir() {
-    let dir = Builder::new().prefix("test5").tempdir().unwrap();
-    let temp_path = dir.path().canonicalize().unwrap();
-    fs::create_dir(&temp_path.join("sample")).unwrap();
-
-    assert!(temp_path.join("sample").is_dir());
-    assert!(verify_or_create_directory(&temp_path, String::from("sample")).is_ok());
-
     dir.close().unwrap();
   }
 

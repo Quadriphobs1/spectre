@@ -7,10 +7,10 @@ use self::Error::*;
 
 #[derive(Debug)]
 pub enum Error {
-  ProjectRootNotFound(PathBuf),
   FileNotFound(PathBuf),
   IoError(io::Error),
   ConfigFileError(serde_yaml::Error),
+  ConfigFileExist(String),
   #[doc(hidden)]
   __Nonexhaustive,
 }
@@ -49,15 +49,15 @@ impl StdError for Error {
 impl fmt::Display for Error {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     match *self {
-      ProjectRootNotFound(ref p) => write!(
-        f,
-        "Unable to find Cargo.toml in {:?} or any parent directories.",
-        p
-      ),
       FileNotFound(ref p) => write!(
         f,
         "Unable to find file or folder in {:?} parent directories.",
         p
+      ),
+      ConfigFileExist(ref s) => write!(
+        f,
+        "A config file exist with the name `{:?}` in root directory.",
+        s
       ),
       IoError(ref error) => f.write_str(
         &error
@@ -79,7 +79,6 @@ impl fmt::Display for Error {
 impl PartialEq for Error {
   fn eq(&self, other: &Self) -> bool {
     match (self, other) {
-      (&ProjectRootNotFound(_), &ProjectRootNotFound(_)) => true,
       (&FileNotFound(_), &FileNotFound(_)) => true,
       _ => false,
     }
@@ -117,12 +116,6 @@ mod test {
   }
 
   #[test]
-  fn test_error_not_found_false_default() {
-    let err = Error::ProjectRootNotFound(PathBuf::from("sample"));
-    assert!(!err.not_found());
-  }
-
-  #[test]
   fn test_io_error_display() {
     let err = Error::IoError(std::io::ErrorKind::PermissionDenied.into());
     let io_err: std::io::Error = std::io::ErrorKind::PermissionDenied.into();
@@ -133,32 +126,26 @@ mod test {
   }
 
   #[test]
-  fn test_project_root_not_found_source() {
-    let err = Error::ProjectRootNotFound(PathBuf::from("sample"));
-    assert!(err.source().is_none());
-  }
-
-  #[test]
-  fn test_project_root_not_found_error_display() {
-    let err = Error::ProjectRootNotFound(PathBuf::from("sample"));
+  fn test_file_not_found_error_display() {
+    let err = Error::FileNotFound(PathBuf::from("sample.yaml"));
     let err_desc = format!("{}", err);
     assert_eq!(
       format!(
-        "Unable to find Cargo.toml in {:?} or any parent directories.",
-        PathBuf::from("sample")
+        "Unable to find file or folder in {:?} parent directories.",
+        PathBuf::from("sample.yaml")
       ),
       err_desc
     );
   }
 
   #[test]
-  fn test_file_not_found_error_display() {
-    let err = Error::FileNotFound(PathBuf::from("sample.toml"));
+  fn test_config_file_exist() {
+    let err = Error::ConfigFileExist(String::from("sample.yaml"));
     let err_desc = format!("{}", err);
     assert_eq!(
       format!(
-        "Unable to find file or folder in {:?} parent directories.",
-        PathBuf::from("sample.toml")
+        "A config file exist with the name `{:?}` in root directory.",
+        String::from("sample.yaml")
       ),
       err_desc
     );
@@ -166,8 +153,8 @@ mod test {
 
   #[test]
   fn test_equal() {
-    let err = Error::FileNotFound(PathBuf::from("sample.toml"));
-    assert_eq!(err, Error::FileNotFound(PathBuf::from("sample.toml")));
+    let err = Error::FileNotFound(PathBuf::from("sample.yaml"));
+    assert_eq!(err, Error::FileNotFound(PathBuf::from("sample.yaml")));
   }
 
   #[test]
