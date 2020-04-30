@@ -5,17 +5,13 @@ extern crate dotenv;
 extern crate toml;
 
 mod cli;
-mod connection;
-mod database;
 mod directory;
-mod driver;
 mod errors;
 mod init;
 mod migrate;
 mod seed;
 mod util;
 
-use self::database::database_command;
 use self::errors::Error;
 use self::init::init_command;
 use self::migrate::migrate_command;
@@ -33,9 +29,8 @@ pub fn main() {
 
   match matches.subcommand() {
     ("init", Some(matches)) => init_command(matches),
-    ("seed", Some(matches)) => seed_command(matches),
     ("migrate", Some(matches)) => migrate_command(matches),
-    ("database", Some(matches)) => database_command(matches),
+    ("seed", Some(matches)) => seed_command(matches),
     ("completions", Some(matches)) => completions_command(matches),
     _ => unreachable!("Unsupported command"),
   }
