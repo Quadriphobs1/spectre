@@ -72,15 +72,19 @@ jobs:
     name: codecov
     runs-on: ubuntu-latest
     needs: [test]
-    timeout-minutes: 60
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
 
       - name: Install rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: nightly-2019-11-04
           override: true
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clean
 
       - name: test
         uses: actions-rs/cargo@v1
@@ -89,7 +93,7 @@ jobs:
           args: --all-features --no-fail-fast
         env:
           CARGO_INCREMENTAL: "0"
-          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off"
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads"
       - uses: actions-rs/grcov@v0.1
 
       - name: Upload to Codecov
@@ -97,3 +101,5 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           file: ${{ steps.coverage.outputs.report }}
+          yml: ./.codecov.yml
+          fail_ci_if_error: true
