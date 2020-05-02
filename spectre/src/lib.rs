@@ -1,19 +1,45 @@
-extern crate spectre_connection;
-
-use spectre_connection::Result;
+extern crate config;
+extern crate connection;
+use config::Config;
+use std::error::Error;
+use std::path::Path;
 
 #[derive(Default, Debug)]
-pub struct Client {}
+pub struct Spectre {
+  config: Config,
+}
 
-impl Client {
-  pub fn new() -> Self {
-    Self::default()
+impl Spectre {
+  // Establish connection from config
+  pub fn from(root: &Path) -> Spectre {
+    let config = Config::from(root);
+    Spectre {
+      config: config.unwrap(),
+    }
   }
-}
-pub fn establish_connection() -> Result<()> {
-  Ok(())
-}
 
-pub fn establish_connections() -> Result<()> {
-  Ok(())
+  // create a new spectre using a config from `spectre.yaml`.
+  pub fn init() -> Spectre {
+    Spectre::default()
+  }
+
+  // Connect to all connections provided
+  pub fn connect() -> Result<(), Box<dyn Error>> {
+    Ok(())
+  }
+
+  // connect to a particular connection
+  pub fn connect_to(_name: &str) -> Result<(), Box<dyn Error>> {
+    Ok(())
+  }
+
+  // get an instance of a connection
+  pub fn get_connection(_name: &str) -> Result<(), Box<dyn Error>> {
+    Ok(())
+  }
+
+  // get options of a connection
+  pub fn get_connection_option(_name: &str) -> Result<(), Box<dyn Error>> {
+    Ok(())
+  }
 }

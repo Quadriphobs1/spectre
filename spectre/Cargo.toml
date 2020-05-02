@@ -11,9 +11,8 @@ license = "MIT OR Apache-2.0"
 serde = "1.0.106"
 serde_derive = "1.0.106"
 dotenv = "0.15.0"
-
-[dependencies.spectre_connection]
-path = "../connection"
+config = { path = "../config", version = "0.1.0" }
+connection = { path = "../connection", version = "0.1.0" }
 
 
 [features]

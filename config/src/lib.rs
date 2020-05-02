@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate serde_derive;
-extern crate spectre_connection;
+extern crate connection;
+extern crate regex;
 
 mod config;
 mod errors;
@@ -10,6 +11,5 @@ mod parser;
 pub use self::config::Config;
 use self::errors::Error;
 pub use self::option::ConfigOption;
-use self::parser::Parser;
 
 type Result<T> = std::result::Result<T, Error>;

@@ -15,35 +15,20 @@ pub fn build_cli() -> App<'static, 'static> {
     .subcommand(migration_subcommand())
     .subcommand(seed_subcommand())
     .subcommand(init_subcommand())
-    .subcommand(database_subcommand())
     .subcommand(completions_subcommand())
     .setting(AppSettings::SubcommandRequiredElseHelp)
 }
 
-fn migration_dir_arg<'a, 'b>() -> Arg<'a, 'b> {
-  Arg::with_name("migration-dir")
-    .long("migration-dir")
-    .help(
-      "The location of your migration directory. By default this \
-           will use the `migration` in the configuration or will \
-           look for a directory called `migrations` in the \
-           current directory and its parents.",
-    )
-    .takes_value(true)
-    .global(true)
-}
-
-fn seed_dir_arg<'a, 'b>() -> Arg<'a, 'b> {
-  Arg::with_name("seed-dir")
-    .long("seed-dir")
-    .help(
-      "The location of your seeding directory. By default this \
-           will use the `seed` in the configuration or will \
-           look for a directory called `seeds` in the \
-           current directory and its parents.",
-    )
-    .takes_value(true)
-    .global(true)
+fn connection_arg<'a, 'b>() -> Arg<'a, 'b> {
+  Arg::with_name("connection")
+      .long("connection")
+      .short("c")
+      .alias("connection")
+      .help(
+          "Specify the connection to run the command again. By default this uses `default` connection defined in your config",
+      )
+      .takes_value(true)
+      .global(true)
 }
 
 fn init_subcommand<'a, 'b>() -> App<'a, 'b> {
@@ -59,9 +44,16 @@ fn init_subcommand<'a, 'b>() -> App<'a, 'b> {
       Arg::with_name("docker")
         .alias("docker")
         .long("docker")
-        .help("Set to true if docker-compose must be generated as well. `false` by default.")
+        .help("Flag if docker-compose must be generated as well.")
         .required(false)
-        .takes_value(true),
+        .requires("containers"),
+      Arg::with_name("containers")
+        .alias("containers")
+        .long("containers")
+        .short("c")
+        .min_values(1)
+        .possible_values(&Shell::variants())
+        .help("Set the containers to be provided for docker"),
       Arg::with_name("name")
         .alias("name")
         .long("name")
@@ -72,29 +64,6 @@ fn init_subcommand<'a, 'b>() -> App<'a, 'b> {
     ])
 }
 
-fn database_subcommand<'a, 'b>() -> App<'a, 'b> {
-  SubCommand::with_name("database")
-    .alias("db")
-    .about("A group of commands for setting up and resetting your database.")
-    .setting(AppSettings::VersionlessSubcommands)
-    .subcommand(SubCommand::with_name("setup").about(
-      "Creates the database specified in your DATABASE_URL, \
-         and then runs default migrations.",
-    ))
-    .subcommand(SubCommand::with_name("reset").about(
-      "Resets your database by dropping the database specified \
-         in your DATABASE_URL and then running `spectre database setup`.",
-    ))
-    .subcommand(SubCommand::with_name("fresh").about(
-      "Drops all tables from the database specified in your \
-        DATABASE_URL and then running `spectre migrate`.",
-    ))
-    .subcommand(
-      SubCommand::with_name("drop").about("Drops the database specified in your DATABASE_URL."),
-    )
-    .setting(AppSettings::SubcommandRequiredElseHelp)
-}
-
 fn migration_subcommand<'a, 'b>() -> App<'a, 'b> {
   SubCommand::with_name("migrate")
     .about(
@@ -102,7 +71,7 @@ fn migration_subcommand<'a, 'b>() -> App<'a, 'b> {
              migrations.",
     )
     .setting(AppSettings::VersionlessSubcommands)
-    .arg(migration_dir_arg())
+    .arg(connection_arg())
     .subcommand(
       SubCommand::with_name("save").about("Save the details of the latest changes in the schema in a migration file which would then be applied using the `up` command"),
     )
@@ -144,8 +113,7 @@ fn seed_subcommand<'a, 'b>() -> App<'a, 'b> {
   SubCommand::with_name("seed")
     .about("A group of commands for generating, running seedings.")
     .setting(AppSettings::VersionlessSubcommands)
-    .arg(seed_dir_arg())
-    .arg(migration_dir_arg())
+    .arg(connection_arg())
     .subcommand(
       SubCommand::with_name("up").about("Run all seedings").arg(
         Arg::with_name("name")

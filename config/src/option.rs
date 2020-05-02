@@ -1,4 +1,4 @@
-use spectre_connection::ConnectionOption;
+use connection::ConnectionOption;
 
 #[derive(Deserialize, Serialize, Debug)]
 #[serde(deny_unknown_fields)]

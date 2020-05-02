@@ -1,5 +1,5 @@
 [package]
-name = "spectre_connection"
+name = "connection"
 version = "0.1.0"
 authors = ["Quadriphobs1 <abiodunquadriadekunle@gmail.com>"]
 edition = "2018"

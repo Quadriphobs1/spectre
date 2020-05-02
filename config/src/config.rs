@@ -1,6 +1,6 @@
+use crate::parser;
 use crate::ConfigOption;
 use crate::Error;
-use crate::Parser;
 use crate::Result;
 use std::fs;
 use std::io::Read;
@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 #[derive(Debug)]
 pub struct Config {
   config_name: String,
-  config_bytes: Vec<u8>,
+  content: String,
   extensions: Vec<String>,
   option: ConfigOption,
 }
@@ -19,7 +19,7 @@ impl Default for Config {
     Config {
       config_name: String::from("spectre"),
       extensions: vec![String::from("yaml"), String::from("yml")],
-      config_bytes: Vec::new(),
+      content: String::new(),
       option: ConfigOption::default(),
     }
   }
@@ -32,8 +32,16 @@ impl Config {
   }
 
   /// Set the config file name
-  pub fn config_name(&mut self, name: &str) {
+  pub fn set_config_name(&mut self, name: &str) {
     self.config_name = String::from(name);
+  }
+
+  /// Load the config from a file
+  pub fn from<P: AsRef<Path>>(path: P) -> Result<Config> {
+    let root_path = path.as_ref().to_path_buf();
+    let mut config = Config::new();
+    config.load(&root_path)?;
+    Ok(config)
   }
 
   /// Load the config file
@@ -45,11 +53,14 @@ impl Config {
       .find_map(|ext| is_in_path(&path_base, ext));
 
     if let Some(path) = path {
-      let mut bytes = Vec::new();
-      fs::File::open(&path)?.read_to_end(&mut bytes)?;
-      self.config_bytes = bytes;
-      let option = Parser::into(&self.config_bytes)?;
-      // TODO: Substitute env variables from loaded values
+      // Try to open the config file for reading.
+      let mut handle = fs::File::open(&path).map_err(Error::IoError)?;
+      handle
+        .read_to_string(&mut self.content)
+        .map_err(Error::IoError)?;
+      self.content = parser::transform_from_env(&mut self.content)?;
+      println!("{}", &self.content);
+      let option = parser::into(&self.content.as_bytes())?;
       self.option = option;
       Ok(())
     } else {
@@ -61,7 +72,7 @@ impl Config {
     use std::io::Write;
 
     let config = ConfigOption::default();
-    let parsed_config = Parser::from(&config)?;
+    let parsed_config = parser::from(&config)?;
     // TODO: Should change the database url to use env syntax
     let path = root
       .join(&self.config_name)
@@ -100,7 +111,7 @@ mod tests {
   fn test_config_name() {
     let mut config = Config::new();
     assert_eq!(config.config_name, String::from("spectre"));
-    config.config_name("example");
+    config.set_config_name("example");
     assert_eq!(config.config_name, String::from("example"));
   }
 
@@ -228,7 +239,7 @@ mod tests {
     let temp_path = dir.path().canonicalize().unwrap();
     env::set_current_dir(&temp_path).unwrap();
     let mut config = Config::new();
-    config.config_name("example");
+    config.set_config_name("example");
     let result = config.create(&temp_path);
 
     assert!(result.is_ok());

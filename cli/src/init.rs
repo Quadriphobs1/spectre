@@ -17,7 +17,7 @@ pub fn init_command(matches: &ArgMatches) {
 
   let mut config = Config::new();
   if !name.is_empty() {
-    config.config_name(&name);
+    config.set_config_name(&name);
   }
   config.create(&base_path).unwrap_or_else(handle_error);
 

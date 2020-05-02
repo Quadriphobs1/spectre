@@ -11,6 +11,7 @@ pub enum Error {
   IoError(io::Error),
   ConfigFileError(serde_yaml::Error),
   ConfigFileExist(String),
+  EnvVarError(std::env::VarError),
   #[doc(hidden)]
   __Nonexhaustive,
 }
@@ -30,6 +31,12 @@ impl From<io::Error> for Error {
   }
 }
 
+impl From<std::env::VarError> for Error {
+  fn from(e: std::env::VarError) -> Self {
+    EnvVarError(e)
+  }
+}
+
 impl From<serde_yaml::Error> for Error {
   fn from(e: serde_yaml::Error) -> Self {
     ConfigFileError(e)
@@ -41,6 +48,7 @@ impl StdError for Error {
     match self {
       IoError(err) => Some(err),
       ConfigFileError(err) => Some(err),
+      EnvVarError(err) => Some(err),
       _ => None,
     }
   }
@@ -66,6 +74,12 @@ impl fmt::Display for Error {
           .unwrap_or_else(|| error.to_string()),
       ),
       ConfigFileError(ref error) => f.write_str(
+        &error
+          .source()
+          .map(ToString::to_string)
+          .unwrap_or_else(|| error.to_string()),
+      ),
+      EnvVarError(ref error) => f.write_str(
         &error
           .source()
           .map(ToString::to_string)
