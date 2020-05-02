@@ -3,13 +3,76 @@ name: ci
 on: [push, pull_request]
 
 jobs:
-  build:
-    name: ${{ matrix.kind }} ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+  style:
+    name: check style
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: rustfmt, clippy
+
+      - name: cargo fmt -- --check
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: cargo clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets --release -- -D clippy::all
+  test:
+    name: check test
+    needs: [style]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        build: [stable, beta, nightly]
+
+        include:
+          - build: stable
+            rust: stable
+          - build: beta
+            rust: beta
+          - build: nightly
+            rust: nightly
+            benches: true
+    steps:
+      - uses: actions/checkout@master
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.build || 'stable' }}
+          profile: minimal
+          override: true
+
+      - name: cargo build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --all-targets --verbose ${{ matrix.features }}
+
+      - name: cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --verbose ${{ matrix.features }}
+
+  coverage:
+    name: codecov
+    runs-on: ubuntu-latest
+    needs: [test]
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@master
 
@@ -18,31 +81,16 @@ jobs:
         with:
           toolchain: nightly
           override: true
-          components: rustfmt, clippy
 
-      - name: Clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets --release -- -D clippy::all
-
-      - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --release --all-targets --verbose
-
-      - name: Test release
+      - name: test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features --no-fail-fast --verbose
+          args: --all-features --no-fail-fast
         env:
           CARGO_INCREMENTAL: "0"
-          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Zno-landing-pads"
-
-      - id: coverage
-        uses: actions-rs/grcov@v0.1
+          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off"
+      - uses: actions-rs/grcov@v0.1
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v1
