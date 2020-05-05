@@ -5,11 +5,13 @@ extern crate regex;
 
 mod config;
 mod errors;
+mod logger;
 mod option;
 mod parser;
 
 pub use self::config::Config;
 use self::errors::Error;
-pub use self::option::ConfigOption;
+use self::logger::{Logger, Logging};
+use self::option::ConfigOption;
 
 type Result<T> = std::result::Result<T, Error>;

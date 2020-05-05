@@ -1,6 +1,9 @@
 extern crate config;
 extern crate connection;
-use config::Config;
+extern crate directory;
+
+pub use config::Config;
+use directory::find_project_root;
 use std::error::Error;
 use std::path::Path;
 
@@ -10,7 +13,7 @@ pub struct Spectre {
 }
 
 impl Spectre {
-  // Establish connection from config
+  // create a new instance loading the config from root
   pub fn from(root: &Path) -> Spectre {
     let config = Config::from(root);
     Spectre {
@@ -18,9 +21,21 @@ impl Spectre {
     }
   }
 
-  // create a new spectre using a config from `spectre.yaml`.
+  // create a new spectre using a config from `spectre.yaml` or `spectre.yml`.
   pub fn init() -> Spectre {
-    Spectre::default()
+    let root = match find_project_root() {
+      Ok(path) => path,
+      Err(error) => {
+        println!("{}", error);
+        ::std::process::exit(1);
+      }
+    };
+
+    let config = Config::from(root);
+
+    Spectre {
+      config: config.unwrap(),
+    }
   }
 
   // Connect to all connections provided

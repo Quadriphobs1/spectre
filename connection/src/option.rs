@@ -9,8 +9,8 @@ pub struct ConnectionOption {
   pub datasource: Datasource,
   pub auto_migrate: Option<bool>,
   #[serde(default)]
-  pub logging: Option<bool>, // TODO: Should support different logging options such as all, query, error, schema, warn, info, log and accept a custom logger
-                             // // entities/models, migrations, subscribers
+  pub logging: Option<bool>,
+  // entities/models, migrations, subscribers
 }
 
 impl Default for ConnectionOption {

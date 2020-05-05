@@ -238,6 +238,9 @@ mod tests {
         ConnectionOption::new(),
         ConnectionOption::new(),
       ],
+      logging: None,
+      cli: None,
+      logger: None,
     };
 
     let result = from(&option);

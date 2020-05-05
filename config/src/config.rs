@@ -20,7 +20,7 @@ impl Default for Config {
       config_name: String::from("spectre"),
       extensions: vec![String::from("yaml"), String::from("yml")],
       content: String::new(),
-      option: ConfigOption::default(),
+      option: ConfigOption::new(),
     }
   }
 }
@@ -73,7 +73,6 @@ impl Config {
 
     let config = ConfigOption::default();
     let parsed_config = parser::from(&config)?;
-    // TODO: Should change the database url to use env syntax
     let path = root
       .join(&self.config_name)
       .with_extension(&self.extensions[0]);

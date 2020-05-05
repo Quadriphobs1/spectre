@@ -82,10 +82,11 @@ jobs:
           toolchain: stable
           override: true
       - name: cargo-tarpaulin
-        uses: actions-rs/tarpaulin@v0.1
+        uses: actions-rs/install@v0.1
         with:
-          version: "0.9.0"
-          args: "-- --test-threads 1"
+          crate: cargo-tarpaulin
+          version: latest
+      - run: cargo tarpaulin --out Xml -- --test-threads 1
 
       - name: upload-codecov
         uses: codecov/codecov-action@v1.0.2

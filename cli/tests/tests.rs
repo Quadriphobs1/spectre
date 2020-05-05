@@ -1,4 +1,3 @@
-#[test]
-fn it_works() {
-  assert_eq!(2 + 2, 4);
-}
+extern crate temp_test;
+
+mod init;

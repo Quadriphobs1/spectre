@@ -2,7 +2,7 @@ use crate::Result;
 use std::fmt;
 use std::str::FromStr;
 
-pub use self::Provider::*;
+use self::Provider::*;
 
 #[derive(Deserialize, Debug, Serialize)]
 pub enum Provider {
@@ -82,6 +82,7 @@ impl Provider {
     }
   }
 
+  /// A list of possible variants in `&'static str` form
   pub fn variants() -> [&'static str; 3] {
     ["postgres", "mysql", "sqlite"]
   }

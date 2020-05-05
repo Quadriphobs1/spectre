@@ -2,6 +2,7 @@ use clap::{
   crate_authors, crate_description, crate_name, crate_version, App, AppSettings, Arg, Shell,
   SubCommand,
 };
+use connection::Provider;
 
 pub fn build_cli() -> App<'static, 'static> {
   App::new(crate_name!())
@@ -31,7 +32,7 @@ fn connection_arg<'a, 'b>() -> Arg<'a, 'b> {
       .global(true)
 }
 
-fn init_subcommand<'a, 'b>() -> App<'a, 'b> {
+pub fn init_subcommand<'a, 'b>() -> App<'a, 'b> {
   SubCommand::with_name("init")
     .about(
       "Generates initial Spectre configuration file. \
@@ -52,7 +53,9 @@ fn init_subcommand<'a, 'b>() -> App<'a, 'b> {
         .long("containers")
         .short("c")
         .min_values(1)
-        .possible_values(&Shell::variants())
+        .takes_value(true)
+        .multiple(true)
+        .possible_values(&Provider::variants())
         .help("Set the containers to be provided for docker"),
       Arg::with_name("name")
         .alias("name")

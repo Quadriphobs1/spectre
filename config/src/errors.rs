@@ -125,7 +125,7 @@ mod test {
 
   #[test]
   fn test_error_not_found_false() {
-    let err = Error::IoError(std::io::ErrorKind::PermissionDenied.into());
+    let err = Error::IoError(std::io::ErrorKind::AlreadyExists.into());
     assert!(!err.not_found());
   }
 
@@ -197,5 +197,24 @@ mod test {
     let expected_desc = "missing field `w` at line 2 column 2".to_string();
     let err_desc = format!("{}", err);
     assert_eq!(expected_desc, err_desc);
+  }
+
+  #[test]
+  fn test_env_var_error() {
+    let err = Error::EnvVarError(std::env::VarError::NotPresent);
+    let err_desc = format!("{}", err);
+    let expected_desc = "environment variable not found".to_string();
+    assert_eq!(expected_desc, err_desc);
+  }
+
+  #[test]
+  fn test_env_error_source() {
+    let err = Error::EnvVarError(std::env::VarError::NotPresent);
+    let io_err = err
+      .source()
+      .unwrap()
+      .downcast_ref::<std::env::VarError>()
+      .unwrap();
+    assert_eq!(&std::env::VarError::NotPresent, io_err);
   }
 }
