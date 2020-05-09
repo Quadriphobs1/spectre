@@ -1,7 +1,7 @@
 use crate::directory::find_project_root;
 use crate::util::handle_error;
 use clap::ArgMatches;
-use config::Config;
+use config::ConfigManager;
 use connection::Provider;
 use std::{error::Error, fs, path::PathBuf, str::FromStr};
 
@@ -12,7 +12,7 @@ pub fn init_command(matches: &ArgMatches) {
   };
   let name = matches.value_of("name");
   let docker = matches.is_present("docker");
-  let mut config = Config::new();
+  let mut config = ConfigManager::new();
 
   if let Some(name) = name {
     config.set_config_name(&name);

@@ -1,4 +1,4 @@
-use crate::{ConfigOption, Result};
+use crate::{Config, Result};
 
 macro_rules! regex {
   ($re:expr) => {
@@ -7,12 +7,12 @@ macro_rules! regex {
 }
 
 /// parse the config file and replace any env variables with their respect values
-pub fn into(bytes: &[u8]) -> Result<ConfigOption> {
-  let config_option = serde_yaml::from_slice::<ConfigOption>(&bytes)?;
+pub fn into(bytes: &[u8]) -> Result<Config> {
+  let config_option = serde_yaml::from_slice::<Config>(&bytes)?;
   Ok(config_option)
 }
 
-pub fn from(option: &ConfigOption) -> Result<Vec<u8>> {
+pub fn from(option: &Config) -> Result<Vec<u8>> {
   let config = serde_yaml::to_string(&option)?;
   Ok(config.into_bytes())
 }
@@ -42,7 +42,7 @@ pub fn transform_from_env(template: &mut String) -> Result<String> {
 #[cfg(test)]
 mod tests {
   use super::*;
-  use crate::ConfigOption;
+  use crate::Config;
   use connection::ConnectionOption;
   use indoc::indoc;
   use std::env;
@@ -223,7 +223,7 @@ mod tests {
 
   #[test]
   fn parse_from_default() {
-    let option = ConfigOption::new();
+    let option = Config::new();
 
     let result = from(&option);
     assert!(result.is_ok())
@@ -231,7 +231,7 @@ mod tests {
 
   #[test]
   fn parse_from() {
-    let option = ConfigOption {
+    let option = Config {
       version: String::from("1.0"),
       connections: vec![
         ConnectionOption::new(),
