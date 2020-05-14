@@ -16,6 +16,7 @@ connection = { path = "../connection", version = "0.1.0" }
 directory = { path = "../directory", version = "0.1.0" }
 
 [features]
-default = ["postgres"]
+default = ["postgres", "mysql", "sqlite"]
 postgres = []
 mysql = []
+sqlite = []

@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use self::Provider::*;
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Hash, Clone, Serialize)]
 pub enum Provider {
   #[cfg(feature = "postgres")]
   #[serde(rename(serialize = "postgres", deserialize = "postgres"))]
@@ -88,12 +88,12 @@ impl Provider {
   }
 }
 
-#[derive(Deserialize, Debug, Serialize)]
+#[derive(Deserialize, Debug, Hash, Clone, Serialize)]
 pub struct Datasource {
   #[serde(default)]
-  provider: Provider,
+  pub provider: Provider,
   #[serde(default)]
-  url: String,
+  pub url: String,
 }
 
 impl Default for Datasource {
